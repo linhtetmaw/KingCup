@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King's Cup</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .card-container {
+            perspective: 1000px; /* For 3D flip effect */
+        }
+        .card {
+            width: 150px;
+            height: 220px;
+            background-color: #fff;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+            color: #1a202c; /* Dark text for card content */
+            font-weight: bold;
+        }
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+        .card-front {
+            background-color: #e53e3e; /* Red back of card */
+            color: #fff;
+            font-size: 2.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid #a00;
+        }
+        .card-back {
+            background-color: #fff;
+            transform: rotateY(180deg);
+        }
+        .card-value {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+        .card-suit {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+        .suit-red {
+            color: #e53e3e; /* Red for Hearts and Diamonds */
+        }
+        .suit-black {
+            color: #1a202c; /* Black for Spades and Clubs */
+        }
+        .king-cup-container {
+            width: 100px;
+            height: 150px;
+            border: 3px solid #fbd38d; /* Gold border */
+            border-radius: 0 0 20px 20px / 0 0 10px 10px;
+            position: relative;
+            overflow: hidden;
+            background-color: #4a5568; /* Grey for empty part */
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .king-cup-liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ecc94b; /* Yellow for liquid */
+            transition: height 0.5s ease-in-out;
+            border-top: 2px solid #fbd38d;
+        }
+        .king-cup-handle {
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 50px;
+            border: 3px solid #fbd38d;
+            border-left: none;
+            border-radius: 0 25px 25px 0;
+            background-color: #4a5568;
+        }
+        .button-shadow {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        .button-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .button-active:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4 min-h-screen">
+    <div class="max-w-4xl w-full bg-gray-800 rounded-xl shadow-2xl p-6 md:p-10 flex flex-col items-center space-y-8">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-yellow-400 mb-6 text-center">King's Cup</h1>
+
+        <div class="flex flex-col md:flex-row items-center md:items-start md:space-x-12 w-full justify-center">
+            <!-- King's Cup Display -->
+            <div class="flex flex-col items-center mb-8 md:mb-0">
+                <h2 class="text-2xl font-semibold mb-4 text-yellow-300">King's Cup</h2>
+                <div class="king-cup-container relative">
+                    <div id="kingCupLiquid" class="king-cup-liquid" style="height: 0%;"></div>
+                    <div class="king-cup-handle"></div>
+                </div>
+                <p id="kingsCount" class="mt-4 text-lg font-medium">Kings Drawn: 0 / 4</p>
+            </div>
+
+            <!-- Card Display Area -->
+            <div class="flex flex-col items-center">
+                <h2 class="text-2xl font-semibold mb-4 text-yellow-300">Current Card</h2>
+                <div id="cardContainer" class="card-container w-[150px] h-[220px] mb-6">
+                    <div id="card" class="card">
+                        <div class="card-face card-front">
+                            <span class="text-5xl">👑</span>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-value top-left"></div>
+                            <div class="card-suit top-left"></div>
+                            <div class="card-value bottom-right transform rotate-180"></div>
+                            <div class="card-suit bottom-right transform rotate-180"></div>
+                        </div>
+                    </div>
+                </div>
+                <p id="currentRule" class="text-xl md:text-2xl font-bold text-center h-20 flex items-center justify-center">Draw a card to begin!</p>
+            </div>
+        </div>
+
+        <!-- Game Controls -->
+        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 mt-8">
+            <button id="drawCardBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out button-shadow button-hover button-active text-lg">
+                Draw Card
+            </button>
+            <button id="resetGameBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out button-shadow button-hover button-active text-lg">
+                Reset Game
+            </button>
+        </div>
+
+        <!-- Rules Section -->
+        <div class="mt-10 w-full text-center">
+            <h2 class="text-3xl font-bold text-yellow-400 mb-6">King's Cup Rules</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left text-gray-200">
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">Ace: Waterfall</h3>
+                    <p>Everyone starts drinking. When the person who drew the card stops, the person to their left can stop, and so on.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">2: You</h3>
+                    <p>Point to someone. They drink.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">3: Me</h3>
+                    <p>You drink.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">4: Wh*res</h3>
+                    <p>All the ladies drink.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">5: Thumb Master</h3>
+                    <p>When you put your thumb on the table, everyone else must too. Last person to do so drinks. You remain Thumb Master until another 5 is drawn.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">6: D*cks</h3>
+                    <p>All the gentlemen drink.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">7: Heaven</h3>
+                    <p>Point your finger to the sky. Last person to do so drinks.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">8: Mate</h3>
+                    <p>Pick a mate. They drink when you drink, and you drink when they drink, for the rest of the game.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">9: Rhyme</h3>
+                    <p>Say a word. Going clockwise, everyone must say a word that rhymes. First person to fail drinks.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">10: Categories</h3>
+                    <p>Pick a category (e.g., "types of fruit"). Going clockwise, everyone must name something in that category. First person to fail drinks.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">Jack: Rule</h3>
+                    <p>Make a new rule. Anyone who breaks it drinks. The rule stays for the rest of the game.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">Queen: Questions</h3>
+                    <p>Ask someone a question. They must answer with a question. This continues until someone answers without a question, or repeats a question. That person drinks.</p>
+                </div>
+                <div class="bg-gray-700 p-5 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-300 mb-2">King: King's Cup</h3>
+                    <p>Pour some of your drink into the King's Cup. The person who draws the 4th King drinks the entire King's Cup!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const drawCardBtn = document.getElementById('drawCardBtn');
+            const resetGameBtn = document.getElementById('resetGameBtn');
+            const cardContainer = document.getElementById('cardContainer');
+            const cardElement = document.getElementById('card');
+            const currentRuleDisplay = document.getElementById('currentRule');
+            const kingCupLiquid = document.getElementById('kingCupLiquid');
+            const kingsCountDisplay = document.getElementById('kingsCount');
+
+            let deck = [];
+            let kingsDrawn = 0;
+            const maxKings = 4;
+
+            const rules = {
+                'A': 'Waterfall: Everyone starts drinking. When the person who drew the card stops, the person to their left can stop, and so on.',
+                '2': 'You: Point to someone. They drink.',
+                '3': 'Me: You drink.',
+                '4': 'Wh*res: All the ladies drink.',
+                '5': 'Thumb Master: When you put your thumb on the table, everyone else must too. Last person to do so drinks. You remain Thumb Master until another 5 is drawn.',
+                '6': 'D*cks: All the gentlemen drink.',
+                '7': 'Heaven: Point your finger to the sky. Last person to do so drinks.',
+                '8': 'Mate: Pick a mate. They drink when you drink, and you drink when they drink, for the rest of the game.',
+                '9': 'Rhyme: Say a word. Going clockwise, everyone must say a word that rhymes. First person to fail drinks.',
+                '10': 'Categories: Pick a category (e.g., "types of fruit"). Going clockwise, everyone must name something in that category. First person to fail drinks.',
+                'J': 'Rule: Make a new rule. Anyone who breaks it drinks. The rule stays for the rest of the game.',
+                'Q': 'Questions: Ask someone a question. They must answer with a question. This continues until someone answers without a question, or repeats a question. That person drinks.',
+                'K': 'King\'s Cup: Pour some of your drink into the King\'s Cup. The person who draws the 4th King drinks the entire King\'s Cup!'
+            };
+
+            // Function to create a new shuffled deck
+            function createDeck() {
+                const suits = ['♠', '♥', '♦', '♣'];
+                const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+                let newDeck = [];
+                for (let suit of suits) {
+                    for (let value of values) {
+                        newDeck.push({ value, suit });
+                    }
+                }
+                // Shuffle the deck using Fisher-Yates algorithm
+                for (let i = newDeck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
+                }
+                return newDeck;
+            }
+
+            // Function to update the King's Cup liquid level
+            function updateKingCup() {
+                const liquidHeight = (kingsDrawn / maxKings) * 100;
+                kingCupLiquid.style.height = `${liquidHeight}%`;
+                kingsCountDisplay.textContent = `Kings Drawn: ${kingsDrawn} / ${maxKings}`;
+            }
+
+            // Function to reset the game
+            function resetGame() {
+                deck = createDeck();
+                kingsDrawn = 0;
+                updateKingCup();
+                currentRuleDisplay.textContent = 'Draw a card to begin!';
+                cardElement.classList.remove('flipped');
+                // Clear card content on reset
+                const cardBack = cardElement.querySelector('.card-back');
+                cardBack.querySelector('.card-value.top-left').textContent = '';
+                cardBack.querySelector('.card-suit.top-left').textContent = '';
+                cardBack.querySelector('.card-value.bottom-right').textContent = '';
+                cardBack.querySelector('.card-suit.bottom-right').textContent = '';
+                drawCardBtn.disabled = false; // Enable draw button
+                drawCardBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            // Function to draw a card
+            function drawCard() {
+                if (deck.length === 0) {
+                    currentRuleDisplay.textContent = 'No more cards! Reset the game to play again.';
+                    drawCardBtn.disabled = true;
+                    drawCardBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    return;
+                }
+
+                // Flip the card back initially if it was flipped
+                cardElement.classList.remove('flipped');
+
+                // Small delay to allow flip animation to start before content changes
+                setTimeout(() => {
+                    const drawnCard = deck.pop();
+                    const rule = rules[drawnCard.value];
+
+                    // Update card display
+                    const cardBack = cardElement.querySelector('.card-back');
+                    const valueElements = cardBack.querySelectorAll('.card-value');
+                    const suitElements = cardBack.querySelectorAll('.card-suit');
+
+                    valueElements.forEach(el => el.textContent = drawnCard.value);
+                    suitElements.forEach(el => el.textContent = drawnCard.suit);
+
+                    // Apply suit color
+                    const isRed = drawnCard.suit === '♥' || drawnCard.suit === '♦';
+                    cardBack.classList.toggle('suit-red', isRed);
+                    cardBack.classList.toggle('suit-black', !isRed);
+
+                    currentRuleDisplay.textContent = rule;
+
+                    if (drawnCard.value === 'K') {
+                        kingsDrawn++;
+                        updateKingCup();
+                        if (kingsDrawn === maxKings) {
+                            currentRuleDisplay.textContent = 'King\'s Cup! The last King was drawn! Drink the entire King\'s Cup!';
+                        }
+                    }
+
+                    // Flip the card to show the back
+                    cardElement.classList.add('flipped');
+                }, 300); // Half of the transition duration
+            }
+
+            // Event Listeners
+            drawCardBtn.addEventListener('click', drawCard);
+            resetGameBtn.addEventListener('click', resetGame);
+
+            // Initial game setup
+            resetGame();
+        });
+    </script>
+</body>
+</html>
